@@ -19,7 +19,7 @@ dp = Dispatcher()
 async def cmd_start(message: types.Message):
     """Handles the /start command. Welcomes user and checks DB for existing data."""
     response = await askAItoAnswer(str(message.from_user.id),
-                                   "Привіт, використай данні з таблиці якщо є та привітайся зі мною.")
+        "Привіт, використай данні з таблиці якщо є та привітайся зі мною.")
     await message.answer(response['reply'])
 
 
