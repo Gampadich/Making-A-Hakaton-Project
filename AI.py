@@ -1,26 +1,34 @@
+import os
+from dotenv import load_dotenv
 from google import genai
 from database import getUserData
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Initialize Gemini AI Client
-client = genai.Client(api_key='AIzaSyCpjWRI8_5ccaNEI0vrZCmbngZI7AurZDk')
+
+load_dotenv()
+client = genai.Client(api_key=os.getenv('GEMINI_API_TOKEN'))
 
 
 async def askAItoAnswer(tgID, userMessage, history=''):
     """Communicates with Gemini AI to parse user intent and return structured JSON."""
     data = getUserData(tgID)
-    time_now = datetime.now().strftime("%d.%m.%Y, %A")
+    today = datetime.now()
+    tomorrow = today + timedelta(days=1)
+    after_tomorrow = today + timedelta(days=2)
 
     # System instructions for the AI to ensure consistent JSON output
     base_rules = f"""
             RULES:
-            1. Today is {time_now}. Use this as your reference.
-            2. DATA RULE: If Name, Phone, or City exists in the "CONTEXT", fill the "data" block. 
+            1. DATA RULE: If Name, Phone, or City exists in the "CONTEXT", fill the "data" block. 
                Do not leave them null if information is available!
-            3. LOGIC: If user mentions a day (e.g., "Saturday"), calculate the date based on {time_now}.
-            4. IS_COMPLETE: Set to true only if ALL fields (name, phone, city, date) are filled.
-            5. NORMALIZATION: All city names MUST be in the nominative case (називний відмінок).
+            2. LOGIC: If user mentions a day (e.g., "Saturday"), calculate the date based on days:
+                Today is {today.strftime('%d.%m.%Y, %A')}.
+                Tomorrow is {tomorrow.strftime('%d.%m.%Y')}.
+                After tomorrow is {after_tomorrow.strftime('%d.%m.%Y')}..
+            3. IS_COMPLETE: Set to true only if ALL fields (name, phone, city, date) are filled.
+            4. NORMALIZATION: All city names MUST be in the nominative case (називний відмінок).
                Example: "у Києві" -> "Київ", "в Обухові" -> "Обухів", "у Чабанах" -> "Чабани".
 
             JSON STRUCTURE:
@@ -64,7 +72,7 @@ async def askAItoAnswer(tgID, userMessage, history=''):
     except Exception as e:
         print(f"AI/JSON Error: {e}")
         return {
-            "reply": "I'm experiencing some technical difficulties. Please try again later!",
+            "reply": "Ой. Мої мізки трохи перегрілись, повторіть будь ласка через декілька хвилин!",
             "is_complete": False,
             "data": {"name": None, "phone": None, "date": None, "city": None}
         }

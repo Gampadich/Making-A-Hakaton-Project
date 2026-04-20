@@ -1,3 +1,4 @@
+import os
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
@@ -7,9 +8,12 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from AI import askAItoAnswer
 from database import saveUserData
 from automation import filling
+from dotenv import load_dotenv
 
 # Bot token for Telegram API interaction
-TOKEN = '8355183430:AAFg6fmc8jxmG0jj797WcyTbFtfLskolrnY'
+load_dotenv()
+
+TOKEN = os.getenv('BOT_TOKEN')
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
@@ -89,7 +93,7 @@ async def confirmBooking(callback: CallbackQuery):
     elif apiData.get('city').lower() == 'чабани':
         url = 'https://chabany.epiland.com/'
     elif apiData.get('city').lower() == 'обухів':
-        url = 'url = https://obukhiv.epiland.com/'
+        url = 'https://obukhiv.epiland.com/'
     else:
         url = ''
         response = await askAItoAnswer(str(callback.from_user.id), "Попроси вибрати інше місто зі списку: Київ, Чабани чи Обухів")
@@ -128,7 +132,9 @@ async def changeData(callback: CallbackQuery):
 async def cancelBooking(callback: CallbackQuery):
     """Handles the cancellation request."""
     await callback.message.edit_reply_markup(reply_markup=None)
-    response = await askAItoAnswer(str(callback.from_user.id), "Я передумав відміни бронювання")
+    tgID = callback.from_user.id
+    history_text = "\n".join(user_history.get(tgID, []))
+    response = await askAItoAnswer(tgID, "Я передумав відміни бронювання", history_text)
     await callback.message.answer(response['reply'])
 
 async def main():
