@@ -6,7 +6,7 @@ from aiogram import F
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, FSInputFile
 from AI import askAItoAnswer
-from database import saveUserData
+from database import saveUserData, setupSQL
 from automation import filling
 from dotenv import load_dotenv
 
@@ -25,6 +25,7 @@ user_history = {}
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     """Handles the /start command. Welcomes user and checks DB for existing data."""
+    setupSQL()
     response = await askAItoAnswer(str(message.from_user.id),
         "Привіт, використай данні з таблиці якщо є та привітайся зі мною.")
     await message.answer(response['reply'])
